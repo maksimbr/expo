@@ -11,8 +11,24 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: 'white',
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: 'black', // Black background for tab bar
+          borderTopColor: 'transparent', // Remove top border
+          elevation: 4,
+          shadowColor: 'black', 
+          shadowOffset: { width: 0, height: -2 }, 
+          shadowOpacity: 0.1, 
+          shadowRadius: 4, 
+        },
+        tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.6)', // Slightly transparent white for inactive icons
+        tabBarShowLabel: false, // Hide tab labels
+        tabBarIconStyle: { 
+          marginTop: 6,
+          marginBottom: 6
+        },
+        // Customize the active tab indicator (optional)
       }}>
       <Tabs.Screen
         name="index"
@@ -32,6 +48,24 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="camera"
+        options={{
+          title: 'Camera',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'camera' : 'camera-outline'} color={color} />
+          ),
+        }}
+        />
+        <Tabs.Screen
+        name="recipe"
+        options={{
+          title: 'Recipe',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'recipe' : 'recipe-outline'} color={color} />
+          ),
+        }}
+        />
     </Tabs>
   );
 }
