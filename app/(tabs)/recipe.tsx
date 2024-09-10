@@ -21,93 +21,97 @@ export default function RecipeScreen() {
     const generateRecipe = async () => {
       setIsLoading(true);
 
-      try {
-        // Image Analysis using OpenAI Vision API
-        const visionApiResponse = await axios.post(
-          'https://api.openai.com/v1/chat/completions',
-          {
-            model: 'gpt-4-vision-preview',
-            messages: [
+      if(capturedImage) {
+        try {
+            // Image Analysis using OpenAI Vision API
+            const visionApiResponse = await axios.post(
+              'https://api.openai.com/v1/chat/completions',
               {
-                role: 'user',
-                content: [
-                  { type: 'text', text: 'What ingredients do you see in this image?' },
+                model: 'gpt-4-turbo',
+                messages: [
                   {
-                    type: 'image_url',
-                    image_url: {
-                      url: capturedImage,
-                      detail: "high"
-                    },
+                    role: 'user',
+                    content: [
+                      { type: 'text', text: 'What ingredients do you see in this image?' },
+                      {
+                        type: 'image_url',
+                        image_url: {
+                          url: capturedImage,
+                          detail: "high"
+                        },
+                      },
+                    ],
                   },
                 ],
+                max_tokens: 300,
               },
-            ],
-            max_tokens: 300,
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${OPENAI_API_KEY}`,
-              'Content-Type': 'application/json',
-            }
-          }
-        );
-
-        const identifiedIngredients = visionApiResponse.data.choices[0].message.content.split(',');
-        setIngredients(identifiedIngredients.map(ingredient => ingredient.trim()));
-
-        // Recipe Generation with OpenAI Text API
-        const recipePrompt = `
-        Based on these ingredients: ${identifiedIngredients.join(', ')}, provide 3 healthy and delicious recipes.
-
-        For each recipe, use the following Markdown format:
-        # Recipe Title
-        
-        Short description (about 1 sentence).
-
-        ## Ingredients
-        - Ingredient 1
-        - Ingredient 2
-        ...
-
-        ## Instructions
-        1. Step 1
-        2. Step 2
-        ...
-
-        Separate each recipe with '---'.
-        `;
-
-        const recipeGenerationResponse = await axios.post(
-          'https://api.openai.com/v1/chat/completions',
-          {
-            model: 'gpt-4-turbo-preview',
-            messages: [
               {
-                role: 'user',
-                content: recipePrompt,
+                headers: {
+                  'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                  'Content-Type': 'application/json',
+                }
+              }
+            );
+    
+            const identifiedIngredients = visionApiResponse.data.choices[0].message.content.split(',');
+            setIngredients(identifiedIngredients.map(ingredient => ingredient.trim()));
+    
+            // Recipe Generation with OpenAI Text API
+            const recipePrompt = `
+            Based on these ingredients: ${identifiedIngredients.join(', ')}, provide 3 healthy and delicious recipes.
+    
+            For each recipe, use the following Markdown format:
+            # Recipe Title
+            
+            Short description (about 1 sentence).
+    
+            ## Ingredients
+            - Ingredient 1
+            - Ingredient 2
+            ...
+    
+            ## Instructions
+            1. Step 1
+            2. Step 2
+            ...
+    
+            Separate each recipe with '---'.
+            `;
+    
+            const recipeGenerationResponse = await axios.post(
+              'https://api.openai.com/v1/chat/completions',
+              {
+                model: 'gpt-4-turbo',
+                messages: [
+                  {
+                    role: 'user',
+                    content: recipePrompt,
+                  },
+                ],
+                max_tokens: 2000,
               },
-            ],
-            max_tokens: 2000,
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${OPENAI_API_KEY}`,
-              'Content-Type': 'application/json',
-            }
+              {
+                headers: {
+                  'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                  'Content-Type': 'application/json',
+                }
+              }
+            );
+    
+            const generatedRecipes = recipeGenerationResponse.data.choices[0].message.content.split('---').map(recipe => recipe.trim());
+            setRecipes(generatedRecipes);
+          } catch (error) {
+            console.error('Error generating recipe:', error);
+            Alert.alert(
+              "Error",
+              "Could not generate recipes. Please try again.",
+            );
+          } finally {
+            setIsLoading(false);
           }
-        );
-
-        const generatedRecipes = recipeGenerationResponse.data.choices[0].message.content.split('---').map(recipe => recipe.trim());
-        setRecipes(generatedRecipes);
-      } catch (error) {
-        console.error('Error generating recipe:', error);
-        Alert.alert(
-          "Error",
-          "Could not generate recipes. Please try again.",
-        );
-      } finally {
-        setIsLoading(false);
       }
+
+    
     };
 
     generateRecipe();

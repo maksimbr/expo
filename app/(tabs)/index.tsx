@@ -62,7 +62,7 @@ export default function HomeScreen() {
         <Card
           size="md"
           variant="elevated"
-          className='border-2 p-1 border-gray-300 border-solid rounded-lg'
+          className='border-2 p-4 border-gray-300 border-solid rounded-lg'
         >
           <Heading size="md" className="mb-1"> 
             Today's Steps
@@ -76,7 +76,7 @@ export default function HomeScreen() {
         <Card
           size="md"
           variant="elevated"
-          className='border-2 p-1 border-gray-300 border-solid rounded-lg'
+          className='border-2 p-4 border-gray-300 border-solid rounded-lg'
         >
           <Heading size="md" className="mb-2"> 
             Calorie Intake
@@ -97,7 +97,7 @@ export default function HomeScreen() {
         <Card
           size="md"
           variant="elevated"
-          className='border-2 p-1 border-gray-300 border-solid rounded-lg'
+          className='border-2 p-4 border-gray-300 border-solid rounded-lg'
         >
           <Heading size="md" className="mb-1"> 
             Meals Taken
