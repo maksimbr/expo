@@ -31,20 +31,30 @@ export default function TabLayout() {
         // Customize the active tab indicator (optional)
       }}>
       <Tabs.Screen
-        name="index"
+        name="recipe"
         options={{
-          title: 'Home',
+          title: 'Recipe',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+            <TabBarIcon name={focused ? 'list' : 'list'} color={color} />
           ),
         }}
       />
+     
       <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'apps-outline' : 'apps-outline'} color={color} />
           ),
         }}
       />
@@ -57,15 +67,15 @@ export default function TabLayout() {
           ),
         }}
         />
-        <Tabs.Screen
-        name="recipe"
+      <Tabs.Screen
+        name="user"
         options={{
-          title: 'Recipe',
+          title: 'User',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'recipe' : 'recipe-outline'} color={color} />
+            <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
           ),
         }}
-        />
+      /> 
     </Tabs>
   );
 }

@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router'; 
 import { useImgContext } from '../../hooks/providers/imageContext';
 
-export default function CameraScreen() {
+export default function UserScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraType, setCameraType] = useState<CameraType>('back');
   const [isCameraReady, setIsCameraReady] = useState(false);

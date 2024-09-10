@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ActivityIndicator,
-  FlatList, 
-  ScrollView,
-  Alert, 
-} from 'react-native';
+import { FlatList, ScrollView, Alert } from 'react-native';
 import axios from 'axios';
+import { Box } from "../../components/ui/box"
+import { Text } from "../../components/ui/text"
+import { Spinner } from "../../components/ui/spinner"
+import { VStack } from "../../components/ui/vstack"
 import { useImgContext } from '../../hooks/providers/imageContext';
+import Markdown from 'react-native-markdown-display';
+import RecipeCard from '../../components/RecipeCard';
 
-const smth = '';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 
-export default function RecipeScreen({ route }) {
-  const [recipe, setRecipe] = useState(null);
+export default function RecipeScreen() {
+  const [recipes, setRecipes] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { capturedImage } = useImgContext();
@@ -24,11 +22,11 @@ export default function RecipeScreen({ route }) {
       setIsLoading(true);
 
       try {
-        // 1. Image Analysis using OpenAI Vision API
+        // Image Analysis using OpenAI Vision API
         const visionApiResponse = await axios.post(
-          'https://api.openai.com/v1/chat/completions', 
+          'https://api.openai.com/v1/chat/completions',
           {
-            model: 'gpt-4-turbo',
+            model: 'gpt-4-vision-preview',
             messages: [
               {
                 role: 'user',
@@ -38,143 +36,120 @@ export default function RecipeScreen({ route }) {
                     type: 'image_url',
                     image_url: {
                       url: capturedImage,
-                      detail:"high"
+                      detail: "high"
                     },
                   },
                 ],
               },
             ],
-            max_tokens: 2700, 
+            max_tokens: 300,
           },
           {
             headers: {
-              'Authorization': `Bearer ${smth}`,
-              'Content-Type': 'application/json', 
+              'Authorization': `Bearer ${OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
             }
           }
         );
 
-        // Assuming OpenAI returns a comma-separated list 
         const identifiedIngredients = visionApiResponse.data.choices[0].message.content.split(',');
+        setIngredients(identifiedIngredients.map(ingredient => ingredient.trim()));
 
-         // Update the ingredients state 
-         setIngredients(identifiedIngredients.map(ingredient => ingredient.trim()));
-
-        // 2. Advanced Recipe Generation Prompt 
+        // Recipe Generation with OpenAI Text API
         const recipePrompt = `
-        Based on a detailed analysis of these ingredients: ${identifiedIngredients}, provide 3 healthy and delicious recipes. 
+        Based on these ingredients: ${identifiedIngredients.join(', ')}, provide 3 healthy and delicious recipes.
 
-        For each recipe, include:
-        - Recipe Title
-        - A short description (about 1 sentence).
-        - Ingredients list (formatted for easy reading).
-        - Clear and concise instructions.
+        For each recipe, use the following Markdown format:
+        # Recipe Title
+        
+        Short description (about 1 sentence).
+
+        ## Ingredients
+        - Ingredient 1
+        - Ingredient 2
+        ...
+
+        ## Instructions
+        1. Step 1
+        2. Step 2
+        ...
+
+        Separate each recipe with '---'.
         `;
 
-        // 3. Recipe Generation with OpenAI Text API
         const recipeGenerationResponse = await axios.post(
-            'https://api.openai.com/v1/chat/completions', 
-            {
-              model: 'gpt-4-turbo',
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    { type: 'text', text: recipePrompt },
-                  ],
-                },
-              ],
-              max_tokens: 2700, 
-            },
-            {
-              headers: {
-                'Authorization': `Bearer ${smth}`,
-                'Content-Type': 'application/json', 
-              }
+          'https://api.openai.com/v1/chat/completions',
+          {
+            model: 'gpt-4-turbo-preview',
+            messages: [
+              {
+                role: 'user',
+                content: recipePrompt,
+              },
+            ],
+            max_tokens: 2000,
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
             }
-          );
+          }
+        );
 
-        setRecipe(recipeGenerationResponse.data.choices[0].message.content?.trim());
+        const generatedRecipes = recipeGenerationResponse.data.choices[0].message.content.split('---').map(recipe => recipe.trim());
+        setRecipes(generatedRecipes);
       } catch (error) {
         console.error('Error generating recipe:', error);
-        Alert.alert('Error', 'Could not generate a recipe. Please try again.'); 
+        Alert.alert(
+          "Error",
+          "Could not generate recipes. Please try again.",
+        );
       } finally {
         setIsLoading(false);
       }
     };
 
     generateRecipe();
-  }, [capturedImage]); 
+  }, [capturedImage]);
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="white" />
-      </View>
+      <Box flex={1} justifyContent="center" alignItems="center" bg="$backgroundDark950">
+        <Spinner size="large" />
+      </Box>
     );
   }
 
-  if (!recipe) {
+  if (recipes.length === 0) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>No recipe found. Please try again.</Text>
-      </View>
+      <Box flex={1} justifyContent="center" alignItems="center" bg="$backgroundDark950">
+        <Text color="$textLight50">No recipes found. Please try again.</Text>
+      </Box>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {ingredients.length > 0 && (
-          <View style={styles.ingredientsSection}>
-            <Text style={styles.sectionTitle}>Ingredients:</Text>
+    <Box flex={1} bg="$backgroundDark950" p="$4">
+      <ScrollView>
+        <VStack space="md">
+          <Box>
+            <Text fontSize="$xl" fontWeight="$bold" color="$textLight50" mb="$2">Identified Ingredients:</Text>
             <FlatList
               data={ingredients}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <Text style={styles.ingredientItem}>- {item}</Text>
+                <Text color="$textLight200">• {item}</Text>
               )}
+              scrollEnabled={false}
             />
-          </View>
-        )}
-
-        <View style={styles.recipeSection}>
-          <Text style={styles.sectionTitle}>Recipes:</Text>
-          <Text style={styles.recipeText}>{recipe}</Text>
-        </View>
+          </Box>
+          <Text fontSize="$xl" fontWeight="$bold" color="$textLight50" mb="$2">Generated Recipes:</Text>
+          {recipes.map((recipe, index) => (
+            <RecipeCard key={index} recipeMarkdown={recipe} />
+          ))}
+        </VStack>
       </ScrollView>
-    </View>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  ingredientsSection: {
-    marginBottom: 20,
-  },
-  recipeSection: {
-    // Add styling as needed
-  },
-  sectionTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  ingredientItem: {
-    color: 'white',
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  recipeText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  // ... other styles
-});
