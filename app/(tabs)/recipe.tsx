@@ -58,16 +58,16 @@ export default function RecipeScreen() {
     
             // Recipe Generation with OpenAI Text API
             const recipePrompt = `
-            Based on these ingredients: ${identifiedIngredients.join(', ')}, provide 3 healthy and delicious recipes.
+            Based on these ingredients: ${identifiedIngredients.join(', ')}, provide 4 healthy and delicious recipes.
     
             For each recipe, use the following Markdown format:
-            # Recipe Title
+            # Recipe Title and total calories of result meal also tag it as healthy, or keto or junk or other based on information you have.
             
             Short description (about 1 sentence).
     
             ## Ingredients
-            - Ingredient 1
-            - Ingredient 2
+            - Ingredient 1 callories of engredient
+            - Ingredient 2 callories of engredient
             ...
     
             ## Instructions
